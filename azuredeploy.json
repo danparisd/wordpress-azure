@@ -8,18 +8,18 @@
     "siteName": {
       "type": "string"
     },
-    "sku": {
-      "type": "string",
-      "metadata": {
-        "description": "wordpress site name"
-      },
-      "allowedValues": [
-        "F1",
-        "B1",
-        "S1"
-      ],
-      "defaultValue": "F1"
-    },
+    // "sku": {
+    //   "type": "string",
+    //   "metadata": {
+    //     "description": "wordpress site name"
+    //   },
+    //   "allowedValues": [
+    //     "F1",
+    //     "B1",
+    //     "S1"
+    //   ],
+    //   "defaultValue": "F1"
+    // },
     "repoUrl": {
       "type": "string",
       "metadata": {
@@ -46,17 +46,17 @@
     "AppHostingPlanIDVar": "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
   },
   "resources": [
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "sku": {
-        "name": "[parameters('sku')]",
-        "capacity": 1
-      },
-      "name": "[parameters('hostingPlanName')]",
-      "apiVersion": "2020-06-01",
-      "location": "[parameters('location')]",
-      "properties": {}
-    },
+    // {
+    //   "type": "Microsoft.Web/serverfarms",
+    //   "sku": {
+    //     "name": "[parameters('sku')]",
+    //     "capacity": 1
+    //   },
+    //   "name": "[parameters('hostingPlanName')]",
+    //   "apiVersion": "2020-06-01",
+    //   "location": "[parameters('location')]",
+    //   "properties": {}
+    // },
     {
       "type": "Microsoft.Web/sites",
       "name": "[parameters('siteName')]",
