@@ -1,18 +1,18 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "siteName": {
-      "type": "string"
-    },
     "hostingPlanName": {
       "type": "string"
     },
-    "siteLocation": {
+    "siteName": {
       "type": "string"
     },
     "sku": {
       "type": "string",
+      "metadata": {
+        "description": "wordpress site name"
+      },
       "allowedValues": [
         "F1",
         "B1",
@@ -21,72 +21,96 @@
       "defaultValue": "F1"
     },
     "repoUrl": {
-      "type": "string"
+      "type": "string",
+      "metadata": {
+        "description": "GitHub repo to deploy to App Service"
+      },
+      "defaultValue": "https://github.com/danparisd/wordpress-azure"
     },
     "branch": {
       "type": "string",
+      "metadata": {
+        "description": "GitHub repo branch to deploy to App Service"
+      },
       "defaultValue": "master"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
     }
+  },
+  "variables": {
+    "AppHostingPlanIDVar": "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
   },
   "resources": [
     {
-      "apiVersion": "2015-08-01",
-      "name": "[parameters('hostingPlanName')]",
-      "type": "Microsoft.Web/serverFarms",
-      "location": "[parameters('siteLocation')]",
-      "properties": {
-        
-      },
+      "type": "Microsoft.Web/serverfarms",
       "sku": {
         "name": "[parameters('sku')]",
         "capacity": 1
-      }
+      },
+      "name": "[parameters('hostingPlanName')]",
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
+      "properties": {}
     },
     {
-      "apiVersion": "2015-08-01",
+      "type": "Microsoft.Web/sites",
       "name": "[parameters('siteName')]",
-      "type": "Microsoft.Web/Sites",
-      "location": "[parameters('siteLocation')]",
-      "dependsOn": [
-        "[concat('Microsoft.Web/serverFarms/', parameters('hostingPlanName'))]"
-      ],
+      "apiVersion": "2020-06-01",
+      "location": "[parameters('location')]",
       "properties": {
         "name": "[parameters('siteName')]",
-        "serverFarmId": "[parameters('hostingPlanName')]",
+        "serverFarmId" : "[variables('AppHostingPlanIDVar')]",
         "siteConfig": {
           "localMySqlEnabled": true,
-           "appSettings": [
-            { "name": "WEBSITE_MYSQL_ENABLED", "value": "1" },
-            { "name": "WEBSITE_MYSQL_GENERAL_LOG", "value": "0" },
-            { "name": "WEBSITE_MYSQL_SLOW_QUERY_LOG", "value": "0" },
-            { "name": "WEBSITE_MYSQL_ARGUMENTS", "value": "--max_allowed_packet=16M" }
+          "appSettings": [
+            {
+              "name": "WEBSITE_MYSQL_ENABLED",
+              "value": "1"
+            },
+            {
+              "name": "WEBSITE_MYSQL_GENERAL_LOG",
+              "value": "0"
+            },
+            {
+              "name": "WEBSITE_MYSQL_SLOW_QUERY_LOG",
+              "value": "0"
+            },
+            {
+              "name": "WEBSITE_MYSQL_ARGUMENTS",
+              "value": "--max_allowed_packet=16M"
+            }
           ]
         }
       },
       "resources": [
         {
-          "apiVersion": "2015-08-01",
-          "name": "web",
           "type": "sourcecontrols",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
-          ],
+          "name": "web",
+          "apiVersion": "2020-06-01",
           "properties": {
             "RepoUrl": "[parameters('repoUrl')]",
             "branch": "[parameters('branch')]",
             "IsManualIntegration": true
-          }
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
+          ]
         },
         {
-          "apiVersion": "2014-06-01",
-          "name": "web",
           "type": "config",
-          "dependsOn": [
-            "[concat('Microsoft.Web/sites/', parameters('siteName'))]"
-          ],
+          "name": "web",
+          "apiVersion": "2020-06-01",
           "properties": {
-            "phpVersion": "7.4"
-          }
+            "phpVersion": "7.0"
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites/', parameters('siteName'))]"
+          ]
         }
       ]
     }
